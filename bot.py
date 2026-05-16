@@ -1,3 +1,4 @@
+import os
 from telegram import (
     Update,
     ReplyKeyboardMarkup,
@@ -17,7 +18,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 
 # TOKEN TELEGRAM
-TOKEN = "8777407975:AAFSf7szNggYOBr3CKcceebs3DuYnDLMXXo"
+TOKEN = os.environ["TELEGRAM_TOKEN"]
 
 # GOOGLE SHEETS
 scope = [
@@ -25,8 +26,14 @@ scope = [
     "https://www.googleapis.com/auth/drive",
 ]
 
-creds = ServiceAccountCredentials.from_json_keyfile_name(
-    "credenciales.json",
+import json
+import os
+from oauth2client.service_account import ServiceAccountCredentials
+
+google_creds = json.loads(os.environ["GOOGLE_CREDENTIALS"])
+
+creds = ServiceAccountCredentials.from_json_keyfile_dict(
+    google_creds,
     scope
 )
 
