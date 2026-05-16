@@ -136,19 +136,17 @@ async def location_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 # APP
-app = ApplicationBuilder().token(TOKEN).build()
+application = ApplicationBuilder().token(TOKEN).build()
 
-app.add_handler(CommandHandler("start", start))
-app.add_handler(CommandHandler("entrada", entrada))
-app.add_handler(CommandHandler("salida", salida))
+application.add_handler(CommandHandler("start", start))
+application.add_handler(CommandHandler("entrada", entrada))
+application.add_handler(CommandHandler("salida", salida))
 
-app.add_handler(
+application.add_handler(
     MessageHandler(filters.LOCATION, location_handler)
 )
 
 print("Bot ejecutándose...")
-
-app.run_polling()
 def run_web():
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
