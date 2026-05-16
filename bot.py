@@ -1,0 +1,138 @@
+from telegram import (
+    Update,
+    ReplyKeyboardMarkup,
+    KeyboardButton,
+)
+
+from telegram.ext import (
+    ApplicationBuilder,
+    CommandHandler,
+    MessageHandler,
+    ContextTypes,
+    filters,
+)
+
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+from datetime import datetime
+
+# TOKEN TELEGRAM
+TOKEN = "8777407975:AAFSf7szNggYOBr3CKcceebs3DuYnDLMXXo"
+
+# GOOGLE SHEETS
+scope = [
+    "https://spreadsheets.google.com/feeds",
+    "https://www.googleapis.com/auth/drive",
+]
+
+creds = ServiceAccountCredentials.from_json_keyfile_name(
+    "credenciales.json",
+    scope
+)
+
+client = gspread.authorize(creds)
+
+sheet = client.open("Asistencia Exer").sheet1
+
+# MEMORIA TEMPORAL
+movimientos = {}
+
+# START
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    nombre = f"{update.effective_user.first_name} {update.effective_user.last_name or ''}"
+
+    await update.message.reply_text(
+        f"Hola {nombre} 👋\n\n"
+        "Bot de asistencia Exer activo ✅\n\n"
+        "Usa:\n"
+        "/entrada\n"
+        "/salida"
+    )
+
+# ENTRADA
+async def entrada(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    movimientos[update.effective_user.id] = "Entrada"
+
+    keyboard = [
+        [KeyboardButton("Compartir ubicación 📍", request_location=True)]
+    ]
+
+    reply_markup = ReplyKeyboardMarkup(
+        keyboard,
+        resize_keyboard=True,
+        one_time_keyboard=True
+    )
+
+    await update.message.reply_text(
+        "Compárteme tu ubicación para registrar tu ENTRADA 📍",
+        reply_markup=reply_markup
+    )
+
+# SALIDA
+async def salida(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    movimientos[update.effective_user.id] = "Salida"
+
+    keyboard = [
+        [KeyboardButton("Compartir ubicación 📍", request_location=True)]
+    ]
+
+    reply_markup = ReplyKeyboardMarkup(
+        keyboard,
+        resize_keyboard=True,
+        one_time_keyboard=True
+    )
+
+    await update.message.reply_text(
+        "Compárteme tu ubicación para registrar tu SALIDA 📍",
+        reply_markup=reply_markup
+    )
+
+# UBICACIÓN
+async def location_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    user = update.effective_user
+    location = update.message.location
+
+    tipo = movimientos.get(user.id, "Desconocido")
+
+    fecha = datetime.now().strftime("%d/%m/%Y")
+    hora = datetime.now().strftime("%H:%M:%S")
+
+    telegram_id = user.id
+
+    nombre = f"{user.first_name} {user.last_name or ''}"
+
+    latitud = location.latitude
+    longitud = location.longitude
+
+    sheet.append_row([
+        fecha,
+        hora,
+        telegram_id,
+        nombre,
+        tipo,
+        latitud,
+        longitud
+    ])
+
+    await update.message.reply_text(
+        f"{tipo} registrada correctamente ✅"
+    )
+
+# APP
+app = ApplicationBuilder().token(TOKEN).build()
+
+app.add_handler(CommandHandler("start", start))
+app.add_handler(CommandHandler("entrada", entrada))
+app.add_handler(CommandHandler("salida", salida))
+
+app.add_handler(
+    MessageHandler(filters.LOCATION, location_handler)
+)
+
+print("Bot ejecutándose...")
+
+app.run_polling()
