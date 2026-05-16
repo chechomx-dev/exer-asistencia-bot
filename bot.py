@@ -22,6 +22,7 @@ def home():
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
+import pytz
 
 # TOKEN TELEGRAM
 TOKEN = os.environ["TELEGRAM_TOKEN"]
@@ -111,8 +112,11 @@ async def location_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     tipo = movimientos.get(user.id, "Desconocido")
 
-    fecha = datetime.now().strftime("%d/%m/%Y")
-    hora = datetime.now().strftime("%H:%M:%S")
+        zona_mx = pytz.timezone("America/Mexico_City")
+    ahora = datetime.now(zona_mx)
+
+    fecha = ahora.strftime("%d/%m/%Y")
+    hora = ahora.strftime("%H:%M:%S")
 
     telegram_id = user.id
 
