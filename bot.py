@@ -154,3 +154,5 @@ def run_web():
     app.run(host="0.0.0.0", port=port)
 
 threading.Thread(target=run_web).start()
+
+application.run_polling()
