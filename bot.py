@@ -156,6 +156,8 @@ def run_web():
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
 
-threading.Thread(target=run_web).start()
+threading.Thread(target=run_web, daemon=True).start()
 
-application.run_polling()
+print("Bot ejecutándose...")
+
+application.run_polling(drop_pending_updates=True)
